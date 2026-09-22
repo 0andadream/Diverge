@@ -10,7 +10,7 @@ export async function readHistory(symbol:SymbolName):Promise<Stored> {
  if(process.env.BLOB_READ_WRITE_TOKEN){
   try{
    const data=await get(`diverge/v1/${symbol}.json`,{access:'private',useCache:false,headers:{'Accept-Encoding':'identity'}});
-   if(!data || data.statusCode===404)return {snapshots:[]};
+   if(!data)return {snapshots:[]};
    if(data.statusCode!==200)throw new Error('Snapshot store returned no content');
    return {snapshots:JSON.parse(await new Response(data.stream).text()),etag:data.blob.etag};
   }catch(error){
