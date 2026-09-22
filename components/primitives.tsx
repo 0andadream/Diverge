@@ -2,11 +2,10 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import type { Json, Lifecycle } from '@/lib/types';
-export function Mark(){return <span className="brand-mark" aria-hidden="true"><i/><i/><i/></span>;}
 export function AssetEmblem({symbol,size=34}:{symbol:string;size?:number}){
  return <span className={`asset-emblem ${symbol.toLowerCase()}`} style={{width:size,height:size}}><img src={`/logos/${symbol.toLowerCase()}.png`} alt="" width={size} height={size}/></span>;
 }
-export function Header(){return <header className="header"><Link href="/" className="brand" aria-label="Diverge home"><Mark/><strong>DIVERGE</strong></Link><div className="header-right"><span className="network">SOLANA MAINNET</span><span className="edition">INTEGRITY MONITOR / 01</span></div></header>;}
+export function Header(){return <header className="header"><Link href="/" className="brand" aria-label="Diverge home"><img className="wordmark" src="/diverge-wordmark.png" alt="DIVERGE" height={28}/></Link><div className="header-right"><span className="network">SOLANA MAINNET</span><span className="edition">INTEGRITY MONITOR / 01</span></div></header>;}
 export function Footer(){return <footer><span>DIVERGE <b>KNOW WHAT’S VERIFIED.</b></span><span>Onchain token state ≠ underlying SPV holdings.</span></footer>;}
 export function Badge({value}:{value:string}){return <span className={`badge ${value.toLowerCase().replaceAll('_','-').replaceAll(' ','-')}`}>{value.replaceAll('_',' ')}</span>;}
 export function Source({url,children='SOURCE'}:{url:string;children?:React.ReactNode}){return <a className="source" href={(/^https:\/\//.test(url)||url.startsWith('/api/'))?url:undefined} target="_blank" rel="noopener noreferrer">{children} <span aria-hidden="true">↗</span></a>;}

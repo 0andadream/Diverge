@@ -1,0 +1,6 @@
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+
+[variables]
+NIXPACKS_NODE_VERSION = "20"
+NEXT_TELEMETRY_DISABLED = "1"
