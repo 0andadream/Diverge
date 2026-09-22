@@ -14,7 +14,7 @@ export function lifecycleFor(symbol: SymbolName, now = Date.now()): Lifecycle {
  const remaining = record.deadline ? Date.parse(record.deadline) - now : null;
  return { ...record, state: remaining === null ? 'NONE_ON_FILE' : remaining <= 0 ? 'WINDOW_CLOSED' : 'ACTION', daysRemaining: remaining === null ? null : Math.max(0, remaining / 86_400_000) };
 }
-const scope = 'BlockOffice reviewed issuer-provided documents and public information as of the report date. This is a third-party attestation, not a statutory audit or a live custody feed. Parity has not reproduced the underlying document review.';
+const scope = 'BlockOffice reviewed issuer-provided documents and public information as of the report date. This is a third-party attestation, not a statutory audit or a live custody feed. Diverge has not reproduced the underlying document review.';
 export const attestations: Partial<Record<SymbolName, Attestation>> = {
  SPACEX: { provider:'BlockOffice Pte. Ltd.', reviewer:'Hue Man Keong · ACCA 5071512', reportDate:'2026-06-17', mintableSupply:'43730.30', mintedSupply:'43713.43', sourceUrl:'https://prestocks.com/documents/spacex-prestocks-attestation-report.pdf', scope },
  ANTHROPIC: { provider:'BlockOffice Pte. Ltd.', reviewer:'Hue Man Keong · ACCA 5071512', reportDate:'2026-07-24', mintableSupply:'7384.00', mintedSupply:'7383.88', sourceUrl:'https://prestocks.com/documents/anthropic-prestocks-attestation-report.pdf', scope },

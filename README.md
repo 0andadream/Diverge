@@ -1,16 +1,16 @@
-# PARITY
+# DIVERGE
 
 **Integrity and lifecycle monitoring for tokenized private markets.**
 
-Parity is the integrity and lifecycle monitor for PreStocks. It continuously snapshots Solana state, issuer evidence, market observations, and lifecycle events. It shows holders what can be independently verified, what is issuer-attested, and what remains outside the observable onchain state.
+Diverge is the integrity and lifecycle monitor for PreStocks. It continuously snapshots Solana state, issuer evidence, market observations, and lifecycle events. It shows holders what can be independently verified, what is issuer-attested, and what remains outside the observable onchain state.
 
-[Live app](https://parity-nu-lovat.vercel.app/) · **Solana Stocklana · Main Track · PreStocks Bounty**
+[GitHub](https://github.com/0andadream/Diverge) · **Solana Stocklana · Main Track · PreStocks Bounty**
 
 > Onchain facts vs issuer claims. Not proof of SPV shares.
 
 ### Why this exists
 
-**XAI demonstrates the problem Parity is built to monitor.**
+**XAI demonstrates the problem Diverge is built to monitor.**
 
 1. xAI was acquired by SpaceX.
 2. PreStocks published a conversion process.
@@ -20,16 +20,16 @@ Parity is the integrity and lifecycle monitor for PreStocks. It continuously sna
 
 Official evidence: [PreStocks XAI disclosure](https://prestocks.com/xai).
 
-> Parity exists to monitor that boundary.
+> Diverge exists to monitor that boundary.
 
-Solana can prove the token state. Issuer disclosures describe the offchain economic lifecycle. Parity monitors both without pretending they are the same evidence.
+Solana can prove the token state. Issuer disclosures describe the offchain economic lifecycle. Diverge monitors both without pretending they are the same evidence.
 
 ## Architecture
 
 ```text
 PreStocks API ───────┐
                      │
-Solana RPC ──────────┼──→ PARITY SCANNER
+Solana RPC ──────────┼──→ DIVERGE SCANNER
                      │         │
 Jupiter ─────────────┤         ├── deterministic checks
                      │         ├── snapshot
@@ -38,7 +38,7 @@ Lifecycle Sources ───┘         ├── SHA-256
 ```
 
 ```text
-                    PARITY
+                   DIVERGE
                       │
        ┌──────────────┼───────────────┐
        ↓              ↓               ↓
@@ -55,14 +55,14 @@ No model in the decision path. Checks are explicit rules. The UI animation illus
 
 ## Explore the evidence
 
-| Open | What to inspect |
+| Route | What to inspect |
 | --- | --- |
-| [Asset register](https://parity-nu-lovat.vercel.app/) | Four PreStocks, evidence classes, lifecycle, integrity hash |
-| [XAI](https://parity-nu-lovat.vercel.app/c/XAI) | Mint still observable; issuer conversion window closed. [PreStocks XAI](https://prestocks.com/xai) |
-| [SPACEX](https://parity-nu-lovat.vercel.app/c/SPACEX) | ACTION, holder deadline 12 March 2027, 23:59 UTC. [PreStocks SpaceX](https://prestocks.com/spacex) |
-| [OPENAI](https://parity-nu-lovat.vercel.app/c/OPENAI) | Mint, authorities, mark, premium, Jupiter observation. [PreStocks OpenAI](https://prestocks.com/openai) |
-| [ANTHROPIC](https://parity-nu-lovat.vercel.app/c/ANTHROPIC#issuer) | Dated BlockOffice attestation, with its scope. [PreStocks Anthropic](https://prestocks.com/anthropic) |
-| [History](https://parity-nu-lovat.vercel.app/c/OPENAI#history) | BASELINE, STATE CHANGE, CONDITION, not every price tick |
+| `/` | Four PreStocks, evidence classes, lifecycle, integrity hash |
+| `/c/XAI` | Mint still observable; issuer conversion window closed. [PreStocks XAI](https://prestocks.com/xai) |
+| `/c/SPACEX` | ACTION, holder deadline 12 March 2027, 23:59 UTC. [PreStocks SpaceX](https://prestocks.com/spacex) |
+| `/c/OPENAI` | Mint, authorities, mark, premium, Jupiter observation. [PreStocks OpenAI](https://prestocks.com/openai) |
+| `/c/ANTHROPIC#issuer` | Dated BlockOffice attestation, with its scope. [PreStocks Anthropic](https://prestocks.com/anthropic) |
+| `/c/OPENAI#history` | BASELINE, STATE CHANGE, CONDITION, not every price tick |
 
 ## States
 
@@ -96,11 +96,11 @@ Jupiter measures the observed permissionless Solana DEX route at the tested size
 
 A thin or missing Jupiter route does not establish that the asset lacks liquidity through issuer, RFQ, OTC, centralized, or other venues.
 
-## What Parity does not do
+## What Diverge does not do
 
 - It does not prove SPV reserves.
 - It does not independently prove private-company share custody unless suitable independent evidence exists.
-- It does not recommend buying or selling. Parity does not provide investment recommendations.
+- It does not recommend buying or selling. Diverge does not provide investment recommendations.
 - It does not assign AI-generated risk scores.
 - It does not treat issuer claims as onchain facts.
 - It does not treat Jupiter as the entire market.
@@ -110,14 +110,14 @@ When evidence is unavailable:
 
 `NO DATA`
 
-`API OBSERVED AT` is not `MARK UPDATED AT`. If PreStocks does not expose an authoritative mark-update timestamp, Parity shows `MARK UPDATED AT, NO DATA`. Retrieval time does not establish mark freshness.
+`API OBSERVED AT` is not `MARK UPDATED AT`. If PreStocks does not expose an authoritative mark-update timestamp, Diverge shows `MARK UPDATED AT, NO DATA`. Retrieval time does not establish mark freshness.
 
 ## Verify it yourself
 
 ```sh
-curl --fail --silent --show-error https://parity-nu-lovat.vercel.app/api/scan
-curl --fail --silent --show-error https://parity-nu-lovat.vercel.app/api/scan/OPENAI
-curl --fail --silent --show-error https://parity-nu-lovat.vercel.app/api/scan/XAI
+curl --fail --silent --show-error http://localhost:3000/api/scan
+curl --fail --silent --show-error http://localhost:3000/api/scan/OPENAI
+curl --fail --silent --show-error http://localhost:3000/api/scan/XAI
 ```
 
 Inspect `scannedAt`, `observations`, `canonical` (integrity hash payload), `historyKind`, and `historyEvents`. Calls within 30 seconds reuse the saved observation. Requests never submit a Solana transaction.
@@ -148,7 +148,7 @@ Credentials are server-only. Never commit `.env.local`.
 
 ## Honesty / limitations
 
-- Parity is not Proof of Reserves. Parity does not provide investment recommendations.
+- Diverge is not Proof of Reserves. Diverge does not provide investment recommendations.
 - Onchain token state does not independently prove underlying SPV holdings.
 - Issuer information is labelled as issuer evidence.
 - Jupiter observations represent the measured permissionless Solana DEX route only. A missing Jupiter route does not prove liquidity is absent elsewhere.

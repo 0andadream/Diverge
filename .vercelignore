@@ -1,5 +1,5 @@
 .env*
-.parity/
+.diverge/
 .git/
 data/day0/*.html
 data/day0/*.js
