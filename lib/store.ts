@@ -1,17 +1,22 @@
 import { readFile, mkdir, writeFile, rename } from 'node:fs/promises';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { get, put } from '@vercel/blob';
+import { BlobNotFoundError, get, put } from '@vercel/blob';
 import type { Snapshot, SymbolName } from './types';
 export const persistenceMode=()=>process.env.BLOB_READ_WRITE_TOKEN?'DURABLE · VERCEL BLOB':process.env.VERCEL?'UNAVAILABLE · HISTORY NOT SAVED':'LOCAL JSON';
 const fileFor=(symbol:SymbolName)=>path.join(process.cwd(),'.diverge',`${symbol}.json`);
 interface Stored { snapshots:Snapshot[]; etag?:string }
 export async function readHistory(symbol:SymbolName):Promise<Stored> {
  if(process.env.BLOB_READ_WRITE_TOKEN){
-  const data=await get(`diverge/v1/${symbol}.json`,{access:'private',useCache:false,headers:{'Accept-Encoding':'identity'}});
-  if(!data)return {snapshots:[]};
-  if(data.statusCode!==200)throw new Error('Snapshot store returned no content');
-  return {snapshots:JSON.parse(await new Response(data.stream).text()),etag:data.blob.etag};
+  try{
+   const data=await get(`diverge/v1/${symbol}.json`,{access:'private',useCache:false,headers:{'Accept-Encoding':'identity'}});
+   if(!data || data.statusCode===404)return {snapshots:[]};
+   if(data.statusCode!==200)throw new Error('Snapshot store returned no content');
+   return {snapshots:JSON.parse(await new Response(data.stream).text()),etag:data.blob.etag};
+  }catch(error){
+   if(error instanceof BlobNotFoundError)return {snapshots:[]};
+   throw error;
+  }
  }
  if(process.env.VERCEL)return {snapshots:[]};
  try{return {snapshots:JSON.parse(await readFile(fileFor(symbol),'utf8'))};}catch(error){if((error as NodeJS.ErrnoException).code==='ENOENT')return {snapshots:[]};throw error;}
