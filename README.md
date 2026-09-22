@@ -2,7 +2,7 @@
 
 **Integrity and lifecycle monitoring for tokenized private markets.**
 
-Diverge is the integrity and lifecycle monitor for PreStocks. It continuously snapshots Solana state, issuer evidence, market observations, and lifecycle events. It shows holders what can be independently verified, what is issuer-attested, and what remains outside the observable onchain state.
+Diverge is the integrity and lifecycle monitor for PreStocks. It snapshots the live PreStocks catalogue (ANDURIL, ANTHROPIC, FIGUREAI, KALSHI, NEURALINK, OPENAI, POLYMARKET, SPACEX) plus historical XAI across Solana state, issuer evidence, market observations, and lifecycle events. It shows holders what can be independently verified, what is issuer-attested, and what remains outside the observable onchain state.
 
 [Live app](https://diverge.up.railway.app) · [GitHub](https://github.com/0andadream/Diverge)
 
@@ -57,11 +57,13 @@ No model in the decision path. Checks are explicit rules. The UI animation illus
 
 | Route | What to inspect |
 | --- | --- |
-| `/` | Four PreStocks, evidence classes, lifecycle, integrity hash |
+| `/` | Live PreStocks catalogue plus historical XAI |
 | `/c/XAI` | Mint still observable; issuer conversion window closed. [PreStocks XAI](https://prestocks.com/xai) |
 | `/c/SPACEX` | ACTION, holder deadline 12 March 2027, 23:59 UTC. [PreStocks SpaceX](https://prestocks.com/spacex) |
 | `/c/OPENAI` | Mint, authorities, mark, premium, Jupiter observation. [PreStocks OpenAI](https://prestocks.com/openai) |
 | `/c/ANTHROPIC#issuer` | Dated BlockOffice attestation, with its scope. [PreStocks Anthropic](https://prestocks.com/anthropic) |
+| `/c/POLYMARKET#issuer` | Dated BlockOffice attestation. [PreStocks Polymarket](https://prestocks.com/polymarket) |
+| `/c/KALSHI#issuer` | Dated BlockOffice attestation. [PreStocks Kalshi](https://prestocks.com/kalshi) |
 | `/c/OPENAI#history` | BASELINE, STATE CHANGE, CONDITION, not every price tick |
 
 ## States

@@ -1,4 +1,4 @@
-export const SYMBOLS = ['OPENAI', 'ANTHROPIC', 'SPACEX', 'XAI'] as const;
+export const SYMBOLS = ['ANDURIL', 'ANTHROPIC', 'FIGUREAI', 'KALSHI', 'NEURALINK', 'OPENAI', 'POLYMARKET', 'SPACEX', 'XAI'] as const;
 export type SymbolName = typeof SYMBOLS[number];
 export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 export type State = 'CLEAR' | 'ATTENTION' | 'ACTION' | 'CRITICAL';

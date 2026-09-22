@@ -7,7 +7,7 @@ import {parseCatalogue,parseMint,parseQuote,USDC} from '../lib/sources';
 import {lifecycleFor} from '../data/lifecycle';
 import {evaluate,selectState} from '../lib/checks';
 import {stateBearing,finalizeSnapshot,normalizeHistory,classify} from '../lib/engine';
-import type {Json,Snapshot} from '../lib/types';
+import {SYMBOLS, type Json, type Snapshot} from '../lib/types';
 const rpc=JSONbig({storeAsString:true}).parse(readFileSync('data/day0/OPENAI-rpc.json','utf8'));
 const mintAddress='PreweJYECqtQwBtpxHL171nL2K6umo692gTm7Q3rpgF';
 const mint=parseMint(mintAddress,rpc,Date.parse('2026-09-21')).mint!;
@@ -18,6 +18,7 @@ test('lossless parsing preserves large fees and numeric catalogue decimals',()=>
 test('scheduled multiplier uses the previous value before activation',()=>{const before=parseMint(mintAddress,rpc,1).mint!;assert.equal(before.scaledUiSupply,before.uiSupply);});
 test('an unrelated account is not treated as a verified mint',()=>{const bad=structuredClone(rpc);bad.result.value.owner='11111111111111111111111111111111';assert.throws(()=>parseMint(mintAddress,bad));assert.deepEqual(parseMint(mintAddress,{result:{context:{slot:1},value:null}}),{mint:null,slot:1,observable:'NO'});});
 test('lifecycle transitions at the exact deadline and never early-critical',()=>{const at=Date.parse('2027-03-12T23:59:00Z');assert.equal(lifecycleFor('SPACEX',at-1).state,'ACTION');assert.equal(lifecycleFor('SPACEX',at).state,'WINDOW_CLOSED');assert.equal(selectState(lifecycleFor('SPACEX',at-1),[]),'ACTION');assert.equal(selectState(lifecycleFor('XAI',at),[]),'CRITICAL');});
+test('every monitored PreStock has a lifecycle record; names without issuer terms stay NONE_ON_FILE',()=>{assert.equal(SYMBOLS.length,9);for(const symbol of SYMBOLS)assert.equal(lifecycleFor(symbol).symbol,symbol);assert.equal(lifecycleFor('POLYMARKET').state,'NONE_ON_FILE');assert.equal(lifecycleFor('KALSHI').state,'NONE_ON_FILE');assert.equal(lifecycleFor('ANDURIL').state,'NONE_ON_FILE');});
 test('premium threshold is absolute and strictly greater than 15%; unknowns get attention',()=>{for(const v of [.15,-.15])assert.equal(evaluate(sample(v),null).find(c=>c.id==='premium')!.attention,false);for(const v of [.150001,-.150001,null])assert.equal(evaluate(sample(v),null).find(c=>c.id==='premium')!.attention,true);});
 test('Jupiter impact threshold uses a fraction and is strictly greater than 3%',()=>{const s=sample();s.quote!.priceImpactPct='.03';assert.equal(evaluate(s,null).find(c=>c.id==='jupiter')!.status,'OBSERVED');s.quote!.priceImpactPct='.030001';assert.equal(evaluate(s,null).find(c=>c.id==='jupiter')!.status,'THIN_ON_OBSERVED_ROUTE');});
 test('a source failure is not equivalent to no DEX route',()=>{assert.equal(parseQuote(mintAddress,{ok:false,status:429,data:{error:'Rate limit'}}).routeExists,'NO DATA');assert.equal(parseQuote(mintAddress,{ok:false,status:400,data:{errorCode:'COULD_NOT_FIND_ANY_ROUTE'}}).routeExists,'NO');const d={inputMint:USDC,outputMint:mintAddress,inAmount:'1',outAmount:'100',routePlan:[{}]};assert.equal(parseQuote(mintAddress,{ok:true,status:200,data:d}).routeExists,'NO DATA');});
