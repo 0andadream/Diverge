@@ -4,7 +4,7 @@
 
 Diverge is the integrity and lifecycle monitor for PreStocks. It continuously snapshots Solana state, issuer evidence, market observations, and lifecycle events. It shows holders what can be independently verified, what is issuer-attested, and what remains outside the observable onchain state.
 
-[GitHub](https://github.com/0andadream/Diverge) · **Solana Stocklana · Main Track · PreStocks Bounty**
+[Live app](https://diverge-production-390f.up.railway.app) · [GitHub](https://github.com/0andadream/Diverge)
 
 > Onchain facts vs issuer claims. Not proof of SPV shares.
 
@@ -115,9 +115,9 @@ When evidence is unavailable:
 ## Verify it yourself
 
 ```sh
-curl --fail --silent --show-error http://localhost:3000/api/scan
-curl --fail --silent --show-error http://localhost:3000/api/scan/OPENAI
-curl --fail --silent --show-error http://localhost:3000/api/scan/XAI
+curl --fail --silent --show-error https://diverge-production-390f.up.railway.app/api/scan
+curl --fail --silent --show-error https://diverge-production-390f.up.railway.app/api/scan/OPENAI
+curl --fail --silent --show-error https://diverge-production-390f.up.railway.app/api/scan/XAI
 ```
 
 Inspect `scannedAt`, `observations`, `canonical` (integrity hash payload), `historyKind`, and `historyEvents`. Calls within 30 seconds reuse the saved observation. Requests never submit a Solana transaction.
