@@ -21,7 +21,8 @@ export async function scan(symbol:SymbolName, catalogue?:Promise<CatalogueResult
  if(pending)return pending;
  const promise=(async()=>{
   const crossed=last?.lifecycle.deadline && Date.parse(last.lifecycle.deadline)<=Date.now() && last.lifecycle.state==='ACTION';
-  if(last && Date.now()-Date.parse(last.scannedAt)<MIN_INTERVAL && !crossed)return detail(last,stored.snapshots);
+  const transportFailed=!!last?.errors.some(e=>e.source==='Solana RPC'||e.source==='Jupiter');
+  if(last && !transportFailed && Date.now()-Date.parse(last.scannedAt)<MIN_INTERVAL && !crossed)return detail(last,stored.snapshots);
   const next=await collect(symbol,last,await(catalogue??loadCatalogue()));
   try{
    const saved=await saveSnapshot(next,stored);
@@ -37,8 +38,15 @@ export async function scan(symbol:SymbolName, catalogue?:Promise<CatalogueResult
  inFlight.set(symbol,promise);
  try{return await promise;}finally{inFlight.delete(symbol);}
 }
+async function mapPool<T,R>(items:readonly T[], limit:number, fn:(item:T)=>Promise<R>):Promise<R[]> {
+ const out=new Array<R>(items.length);
+ let next=0;
+ async function worker(){while(next<items.length){const i=next++;out[i]=await fn(items[i]);}}
+ await Promise.all(Array.from({length:Math.min(limit,items.length)},()=>worker()));
+ return out;
+}
 export async function scanAll(options:{preferStored?:boolean}={}):Promise<Summary> {
  const catalogue=options.preferStored?undefined:loadCatalogue();
- const results=await Promise.all(SYMBOLS.map(symbol=>scan(symbol,catalogue,options)));
+ const results=await mapPool(SYMBOLS,2,symbol=>scan(symbol,catalogue,options));
  return {scannedAt:new Date(Math.max(...results.map(s=>Date.parse(s.scannedAt)))).toISOString(),hash:hash(results.map(s=>({symbol:s.symbol,hash:s.currentHash}))),persistence:persistenceMode(),assets:results.map(s=>({symbol:s.symbol,state:s.state,checks:s.checks,lifecycle:s.lifecycle,currentHash:s.currentHash,previousHash:s.previousHash,changed:s.changed,age:s.age,scannedAt:s.scannedAt,mintObservable:s.mintObservable}))};
 }

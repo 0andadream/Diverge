@@ -111,8 +111,8 @@ export async function collect(symbol:SymbolName, previous:Snapshot|null, catalog
  let mint:Snapshot['mint']=null, quote:Snapshot['quote']=null, slot:number|null=null, observable:Snapshot['mintObservable']='NO DATA';
  let rpcPulledAt=new Date().toISOString(),quotePulledAt=rpcPulledAt;
  await Promise.all([
-  (async()=>{if(!address)return;try{const r=await fetchMint(address);mint=r.mint;slot=r.slot;observable=r.observable;}catch{errors.push({source:'Solana RPC',message:'Mint account could not be retrieved or validated. NO DATA.'});}finally{rpcPulledAt=new Date().toISOString();}})(),
-  (async()=>{if(!address)return;try{quote=await fetchQuote(address);if(quote.routeExists==='NO DATA')errors.push({source:'Jupiter',message:'Quote unavailable; route existence is NO DATA.'});}catch{errors.push({source:'Jupiter',message:'Quote request failed. NO DATA; this is not evidence of no route.'});}finally{quotePulledAt=new Date().toISOString();}})(),
+  (async()=>{if(!address)return;try{const r=await fetchMint(address);mint=r.mint;slot=r.slot;observable=r.observable;}catch(error){console.error('Solana RPC',symbol,error);errors.push({source:'Solana RPC',message:'Mint account could not be retrieved or validated. NO DATA.'});}finally{rpcPulledAt=new Date().toISOString();}})(),
+  (async()=>{if(!address)return;try{quote=await fetchQuote(address);if(quote.routeExists==='NO DATA')errors.push({source:'Jupiter',message:'Quote unavailable; route existence is NO DATA.'});}catch(error){console.error('Jupiter',symbol,error);errors.push({source:'Jupiter',message:'Quote request failed. NO DATA; this is not evidence of no route.'});}finally{quotePulledAt=new Date().toISOString();}})(),
  ]);
  const scannedAt=new Date().toISOString();
  const premium=catalogue?.markPrice && catalogue.markPrice>0 && catalogue.tokenPrice!==null ? new Decimal(catalogue.tokenPrice).minus(catalogue.markPrice).div(catalogue.markPrice).toNumber():null;

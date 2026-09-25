@@ -4,16 +4,28 @@ import { hash } from './canonical';
 import type { Catalogue, Extension, Json, Mint, Quote } from './types';
 export const CATALOGUE_URL = 'https://prestocks.com/api/prestocks';
 export const PUBLIC_RPC = 'https://api.mainnet-beta.solana.com';
+export const FALLBACK_RPC = 'https://solana-rpc.publicnode.com';
 export const USDC = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+export function rpcEndpoints(){return [process.env.RPC_URL, FALLBACK_RPC, PUBLIC_RPC].filter((u,i,a):u is string=>!!u && a.indexOf(u)===i);}
 const TOKEN = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
 const TOKEN_2022 = 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb';
 const parser = JSONbig({storeAsString:true, protoAction:'ignore', constructorAction:'ignore'});
+function sleep(ms:number){return new Promise(resolve=>setTimeout(resolve,ms));}
 export async function request(url: string, options?: RequestInit): Promise<{ok:boolean;status:number;data:unknown}> {
- const response = await fetch(url, {...options, cache:'no-store', signal:AbortSignal.timeout(15000)});
- const body = await response.text();
- let data: unknown;
- try { data = parser.parse(body); } catch { data = {error:'Non-JSON response', body:body.slice(0,500)}; }
- return {ok:response.ok,status:response.status,data};
+ let last:{ok:boolean;status:number;data:unknown}|null=null;
+ for(let attempt=0;attempt<3;attempt++){
+  try{
+   const response=await fetch(url,{...options,cache:'no-store',headers:{'User-Agent':'Diverge/1.0',Accept:'application/json',...options?.headers},signal:AbortSignal.timeout(15000)});
+   const body=await response.text();
+   let data:unknown;
+   try{data=parser.parse(body);}catch{data={error:'Non-JSON response',body:body.slice(0,500)};}
+   last={ok:response.ok,status:response.status,data};
+   if(response.ok || (response.status<500 && response.status!==429))return last;
+  }catch{ /* timeout or transport; retry */ }
+  await sleep(400*(attempt+1));
+ }
+ if(last)return last;
+ throw new Error('Request failed');
 }
 const numeric = (v:unknown):number|null => (typeof v === 'number' || (typeof v === 'string' && /^-?\d+(\.\d+)?([eE][+-]?\d+)?$/.test(v))) && Number.isFinite(Number(v)) ? Number(v) : null;
 Decimal.set({precision:50});
@@ -42,9 +54,20 @@ export function parseMint(address:string, data:unknown, now=Date.now()): {mint:M
 }
 export async function fetchMint(address:string) {
  if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(address)) throw new Error('Invalid issuer mint address');
- const response=await request(process.env.RPC_URL || PUBLIC_RPC,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method:'getAccountInfo',params:[address,{encoding:'jsonParsed',commitment:'finalized'}]})});
- if (!response.ok) throw new Error(`RPC HTTP ${response.status}`);
- return parseMint(address,response.data);
+ const payload=JSON.stringify({jsonrpc:'2.0',id:1,method:'getAccountInfo',params:[address,{encoding:'jsonParsed',commitment:'finalized'}]});
+ let lastError:Error|null=null;
+ for(const rpc of rpcEndpoints()){
+  try{
+   const response=await request(rpc,{method:'POST',headers:{'Content-Type':'application/json'},body:payload});
+   if(!response.ok){lastError=new Error(`RPC HTTP ${response.status}`);continue;}
+   return parseMint(address,response.data);
+  }catch(error){
+   const message=error instanceof Error?error.message:'';
+   if(message==='Invalid issuer mint address' || message==='Account is not a supported SPL mint' || message==='Missing mint authority fields' || message==='Malformed mint state')throw error;
+   lastError=error instanceof Error?error:new Error('RPC unavailable');
+  }
+ }
+ throw lastError??new Error('RPC unavailable');
 }
 export function quoteUrl(mint:string) { const q=new URLSearchParams({inputMint:USDC,outputMint:mint,amount:'500000000',slippageBps:'50'}); return 'https://lite-api.jup.ag/swap/v1/quote?'+q; }
 export function parseQuote(mint:string, response:{ok:boolean;status:number;data:unknown}): Quote {
@@ -54,4 +77,14 @@ export function parseQuote(mint:string, response:{ok:boolean;status:number;data:
  const impact=typeof d.priceImpactPct==='string' && Number.isFinite(Number(d.priceImpactPct)) ? d.priceImpactPct : null;
  return {routeExists:valid?'YES':noRoute?'NO':'NO DATA',inputMint:USDC,inputAmount:'500000000',outputMint:mint,outAmount:valid?String(d.outAmount):null,priceImpactPct:valid?impact:null,routePlan:valid?d.routePlan as Json[]:[],error:valid?null:{httpStatus:response.status,body:d},sourceUrl:quoteUrl(mint),contextSlot:typeof d.contextSlot==='number'?d.contextSlot:null};
 }
-export async function fetchQuote(mint:string) { return parseQuote(mint,await request(quoteUrl(mint))); }
+export async function fetchQuote(mint:string) {
+ const hosts=['https://lite-api.jup.ag/swap/v1/quote','https://api.jup.ag/swap/v1/quote'];
+ const query=new URLSearchParams({inputMint:USDC,outputMint:mint,amount:'500000000',slippageBps:'50'}).toString();
+ let last:Quote|null=null;
+ for(const host of hosts){
+  const response=await request(`${host}?${query}`);
+  last=parseQuote(mint,response);
+  if(last.routeExists!=='NO DATA')return last;
+ }
+ return last!;
+}
